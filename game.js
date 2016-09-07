@@ -5,9 +5,12 @@
     var Game = (function () {
 
         var ROWS = 8;
-        var CELLS = 8;
+        var COLUMNS = 8;
         var PLAYERS = 2;
         var BOARD = document.getElementById('game-board');
+        var ATTR_DATA_ROW = 'data-row';
+        var ATTR_DATA_COLUMN = 'data-column';
+        var ELEM_DIV = 'div';
 
         function Game() {
             this.grid = new Array(ROWS);
@@ -16,16 +19,16 @@
 
         Game.prototype.initBoard = function () {
             for (var i = 0; i < ROWS; i++) {
-                this.grid[i] = new Array(CELLS);
-                var row = document.createElement('div');
+                this.grid[i] = new Array(COLUMNS);
+                var row = document.createElement(ELEM_DIV);
                 row.className = 'row';
-                for (var j = 0; j < CELLS; j++) {
-                    var cell = document.createElement('div');
+                for (var j = 0; j < COLUMNS; j++) {
+                    var cell = document.createElement(ELEM_DIV);
                     cell.className = 'cell';
-                    cell.setAttribute('data-row', i);
-                    cell.setAttribute('data-column', j);
-                    cell.onclick = function (event) {
-                        this.putStoneOn(event.target.getAttribute('data-row'), event.target.getAttribute('data-column'));
+                    cell.setAttribute(ATTR_DATA_ROW, i);
+                    cell.setAttribute(ATTR_DATA_COLUMN, j);
+                    cell.onclick = function (e) {
+                        this.putStoneOn(e.target.getAttribute(ATTR_DATA_ROW), e.target.getAttribute(ATTR_DATA_COLUMN));
                     }.bind(this);
                     row.appendChild(cell);
                     this.grid[i][j] = cell;
