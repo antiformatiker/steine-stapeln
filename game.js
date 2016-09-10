@@ -62,6 +62,14 @@
             /** @private */ this.state = StateEnum.START;
             /** @private */ this.grid = new Array(ROWS);
             this.initBoard();
+        }
+
+        /**
+         * @public
+         * @this {Game}
+         */
+        Game.prototype.start = function () {
+            this.writeMsg('Lasset die Spiele beginnen!');
             this.changeState();
         }
 
@@ -134,7 +142,7 @@
         Game.prototype.changeState = function () {
             if (this.state === StateEnum.START) {
                 this.setState(StateEnum.PLAYER1);
-                this.writeMsg('Lasset die Spiele beginnen!\nSpieler 1 ist nun an der Reihe');
+                this.writeMsg('Spieler 1 ist nun an der Reihe');
                 return;
             }
             if (this.hasWon()) {
@@ -184,6 +192,7 @@
 
     })();
 
-    new Game();
+    var g = new Game();
+    g.start();
 
 })(document);
