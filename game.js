@@ -27,7 +27,7 @@
 
 /**
  * @author antiformatiker <lowbrow.coder@gmail.com>
- * @version 0.0.1-alpha
+ * @version 1.0.0
  */
 
 (function (document) {
