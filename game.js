@@ -116,8 +116,11 @@
             cell.setAttribute(AttrDataEnum.ROW, rowIndex);
             cell.setAttribute(AttrDataEnum.COLUMN, columnIndex);
             cell.onclick = function (e) {
-                this.putStoneOn(e.target.getAttribute(AttrDataEnum.ROW), e.target.getAttribute(AttrDataEnum.COLUMN));
-                this.changeState();
+                if (this.putStone(e.target.getAttribute(AttrDataEnum.ROW), e.target.getAttribute(AttrDataEnum.COLUMN))) {
+                    this.changeState();
+                } else {
+                    this.writeMsg('Ungültig, hier konnte kein Stein gelegt werden, versuchen Sie es woanders.');
+                }
             }.bind(this);
             return cell;
         }
@@ -125,14 +128,25 @@
         /**
          * @private
          * @this {Game}
+         * @param {number} row
+         * @param {number} column
+         * @return {boolean}
          */
-        Game.prototype.putStoneOn = function (row, column) {
+        Game.prototype.putStone = function (row, column) {
             for (var k = this.grid[row].length - 1; k >= 0; k--) {
-                if (!this.grid[row][k].style.backgroundColor && this.grid[row][k].style.backgroundColor !== 'rgb(255, 0, 0)') {
-                    this.grid[row][k].style.backgroundColor = 'red';
-                    return;
+                if (this.state === StateEnum.PLAYER1) {
+                    if (!this.grid[k][column].style.backgroundColor && this.grid[k][column].style.backgroundColor !== 'rgb(255, 0, 0)') {
+                        this.grid[k][column].style.backgroundColor = 'red';
+                        return true;
+                    }
+                } else if (this.state === StateEnum.PLAYER2) {
+                    if (!this.grid[k][column].style.backgroundColor && this.grid[k][column].style.backgroundColor !== 'rgb(255, 255, 0)') {
+                        this.grid[k][column].style.backgroundColor = 'yellow';
+                        return true;
+                    }
                 }
             }
+            return false;
         }
 
         /**
@@ -144,18 +158,15 @@
                 this.setState(StateEnum.PLAYER1);
                 this.writeMsg('Spieler 1 ist nun an der Reihe');
                 return;
-            }
-            if (this.hasWon()) {
+            } else if (this.gameIsDone()) {
                 this.setState(StateEnum.END);
                 this.writeMsg('Herzlichen Glückwunsch! Das Spiel ist zuende');
                 return;
-            }
-            if (this.state === StateEnum.PLAYER1) {
+            } else if (this.state === StateEnum.PLAYER1) {
                 this.setState(StateEnum.PLAYER2);
                 this.writeMsg('Spieler 2 ist nun an der Reihe!');
                 return;
-            }
-            if (this.state === StateEnum.PLAYER2) {
+            } else if (this.state === StateEnum.PLAYER2) {
                 this.setState(StateEnum.PLAYER1);
                 this.writeMsg('Spieler 1 ist nun an der Reihe!');
                 return;
@@ -174,7 +185,7 @@
          * @private
          * @this {Game}
          */
-        Game.prototype.hasWon = function () {
+        Game.prototype.gameIsDone = function () {
             return false;
         }
 
