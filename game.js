@@ -38,6 +38,7 @@
 
         /** @const {number} */ var ROWS = 8;
         /** @const {number} */ var COLUMNS = 8;
+        /** @const {number} */ var STONES_TO_WIN = 4;
         /** @const {number} */ var PLAYERS = 2;
         /** @const {HTMLDivElement} */ var BOARD = document.getElementById('game-board');
         /** @const {HTMLTextAreaElement} */ var MSGBOX = document.getElementById('game-msg-box');
@@ -69,6 +70,7 @@
          * @this {Game}
          */
         Game.prototype.start = function () {
+            MSGBOX.value = '';
             this.writeMsg('Lasset die Spiele beginnen!');
             this.changeState();
         }
@@ -86,7 +88,10 @@
                 for (var j = 0; j < COLUMNS; j++) {
                     var cell = this.createCell(i, j);
                     row.appendChild(cell);
-                    this.grid[i][j] = cell;
+                    this.grid[i][j] = {
+                        htmlObject: cell,
+                        player: null
+                    };
                 }
                 BOARD.appendChild(row);
             }
@@ -116,10 +121,12 @@
             cell.setAttribute(AttrDataEnum.ROW, rowIndex);
             cell.setAttribute(AttrDataEnum.COLUMN, columnIndex);
             cell.onclick = function (e) {
-                if (this.putStone(e.target.getAttribute(AttrDataEnum.ROW), e.target.getAttribute(AttrDataEnum.COLUMN))) {
-                    this.changeState();
-                } else {
-                    this.writeMsg('Ungültig, hier konnte kein Stein gelegt werden, versuchen Sie es woanders.');
+                if (this.state !== StateEnum.END) {
+                    if (this.putStone(e.target.getAttribute(AttrDataEnum.ROW), e.target.getAttribute(AttrDataEnum.COLUMN))) {
+                        this.changeState();
+                    } else {
+                        this.writeMsg('Ungültig, hier konnte kein Stein gelegt werden, versuchen Sie es woanders.');
+                    }
                 }
             }.bind(this);
             return cell;
@@ -134,16 +141,10 @@
          */
         Game.prototype.putStone = function (row, column) {
             for (var k = this.grid[row].length - 1; k >= 0; k--) {
-                if (this.state === StateEnum.PLAYER1) {
-                    if (!this.grid[k][column].style.backgroundColor && this.grid[k][column].style.backgroundColor !== 'rgb(255, 0, 0)') {
-                        this.grid[k][column].style.backgroundColor = 'red';
-                        return true;
-                    }
-                } else if (this.state === StateEnum.PLAYER2) {
-                    if (!this.grid[k][column].style.backgroundColor && this.grid[k][column].style.backgroundColor !== 'rgb(255, 255, 0)') {
-                        this.grid[k][column].style.backgroundColor = 'yellow';
-                        return true;
-                    }
+                if (this.grid[k][column].player === null) {
+                    this.grid[k][column].player = (this.state === StateEnum.PLAYER1) ? StateEnum.PLAYER1 : StateEnum.PLAYER2;
+                    this.grid[k][column].htmlObject.className += (this.state === StateEnum.PLAYER1) ? ' p1' : ' p2';
+                    return true;
                 }
             }
             return false;
@@ -159,8 +160,10 @@
                 this.writeMsg('Spieler 1 ist nun an der Reihe');
                 return;
             } else if (this.gameIsDone()) {
-                this.setState(StateEnum.END);
                 this.writeMsg('Herzlichen Glückwunsch! Das Spiel ist zuende');
+                var winner = (this.state === StateEnum.PLAYER1) ? '1' : '2';
+                this.writeMsg('Spieler ' + winner + ' hat gewonnen');
+                this.setState(StateEnum.END);
                 return;
             } else if (this.state === StateEnum.PLAYER1) {
                 this.setState(StateEnum.PLAYER2);
@@ -184,8 +187,219 @@
         /**
          * @private
          * @this {Game}
+         * @reutrn {boolean}
          */
         Game.prototype.gameIsDone = function () {
+            if (this.horizontalWin()
+                || this.verticalWin()
+                || this.diagonalDownWin()
+                || this.diagonalUpWin()) {
+                return true
+            }
+            return false;
+        }
+
+        /**
+         * @private
+         * @this {Game}
+         * @return {boolean}
+         */
+        Game.prototype.horizontalWin = function () {
+            var stein1 = [],
+                stein2 = [],
+                stein3 = [],
+                stein4 = [];
+
+            for (var i = 0; i < ROWS; i++) {
+                for (var j = 0; j < COLUMNS - 3; j++) {
+                    stein1.push(this.grid[i][j]);
+                }
+            }
+
+            for (var k = 0; k < ROWS; k++) {
+                for (var l = 1; l < COLUMNS - 2; l++) {
+                    stein2.push(this.grid[k][l]);
+                }
+            }
+
+            for (var m = 0; m < ROWS; m++) {
+                for (var n = 2; n < COLUMNS - 1; n++) {
+                    stein3.push(this.grid[m][n]);
+                }
+            }
+
+            for (var o = 0; o < ROWS; o++) {
+                for (var p = 3; p < COLUMNS; p++) {
+                    stein4.push(this.grid[o][p]);
+                }
+            }
+
+            for (var q = 0; q < stein1.length; q++) {
+                if (stein1[q].player === this.state
+                    && stein2[q].player === this.state
+                    && stein3[q].player === this.state
+                    && stein4[q].player === this.state) {
+                    stein1[q].htmlObject.className += ' wl';
+                    stein2[q].htmlObject.className += ' wl';
+                    stein3[q].htmlObject.className += ' wl';
+                    stein4[q].htmlObject.className += ' wl';
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * @private
+         * @this {Game}
+         * @return {boolean}
+         */
+        Game.prototype.verticalWin = function () {
+            var stein1 = [],
+                stein2 = [],
+                stein3 = [],
+                stein4 = [];
+
+            for (var i = 0; i < ROWS - 3; i++) {
+                for (var j = 0; j < COLUMNS; j++) {
+                    stein1.push(this.grid[i][j]);
+                }
+            }
+
+            for (var k = 1; k < ROWS - 2; k++) {
+                for (var l = 0; l < COLUMNS; l++) {
+                    stein2.push(this.grid[k][l]);
+                }
+            }
+
+            for (var m = 2; m < ROWS - 1; m++) {
+                for (var n = 0; n < COLUMNS; n++) {
+                    stein3.push(this.grid[m][n]);
+                }
+            }
+
+            for (var o = 3; o < ROWS; o++) {
+                for (var p = 0; p < COLUMNS; p++) {
+                    stein4.push(this.grid[o][p]);
+                }
+            }
+
+            for (var q = 0; q < stein1.length; q++) {
+                if (stein1[q].player === this.state
+                    && stein2[q].player === this.state
+                    && stein3[q].player === this.state
+                    && stein4[q].player === this.state) {
+                    stein1[q].htmlObject.className += ' wl';
+                    stein2[q].htmlObject.className += ' wl';
+                    stein3[q].htmlObject.className += ' wl';
+                    stein4[q].htmlObject.className += ' wl';
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * @private
+         * @this {Game}
+         * @return {boolean}
+         */
+        Game.prototype.diagonalDownWin = function () {
+            var stein1 = [],
+                stein2 = [],
+                stein3 = [],
+                stein4 = [];
+
+            for (var i = 0; i < ROWS - 3; i++) {
+                for (var j = 0; j < COLUMNS - 3; j++) {
+                    stein1.push(this.grid[i][j]);
+                }
+            }
+
+            for (var k = 1; k < ROWS - 2; k++) {
+                for (var l = 1; l < COLUMNS - 2; l++) {
+                    stein2.push(this.grid[k][l]);
+                }
+            }
+
+            for (var m = 2; m < ROWS - 1; m++) {
+                for (var n = 2; n < COLUMNS - 1; n++) {
+                    stein3.push(this.grid[m][n]);
+                }
+            }
+
+            for (var o = 3; o < ROWS; o++) {
+                for (var p = 3; p < COLUMNS; p++) {
+                    stein4.push(this.grid[o][p]);
+                }
+            }
+
+            for (var q = 0; q < stein1.length; q++) {
+                if (stein1[q].player === this.state
+                    && stein2[q].player === this.state
+                    && stein3[q].player === this.state
+                    && stein4[q].player === this.state) {
+                    stein1[q].htmlObject.className += ' wl';
+                    stein2[q].htmlObject.className += ' wl';
+                    stein3[q].htmlObject.className += ' wl';
+                    stein4[q].htmlObject.className += ' wl';
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /**
+         * @private
+         * @this {Game}
+         * @return {boolean}
+         */
+        Game.prototype.diagonalUpWin = function () {
+            var stein1 = [],
+                stein2 = [],
+                stein3 = [],
+                stein4 = [];
+
+            for (var i = 0; i < ROWS - 3; i++) {
+                for (var j = 3; j < COLUMNS; j++) {
+                    stein1.push(this.grid[i][j]);
+                }
+            }
+
+            for (var k = 1; k < ROWS - 2; k++) {
+                for (var l = 2; l < COLUMNS - 1; l++) {
+                    stein2.push(this.grid[k][l]);
+                }
+            }
+
+            for (var m = 2; m < ROWS - 1; m++) {
+                for (var n = 1; n < COLUMNS - 2; n++) {
+                    stein3.push(this.grid[m][n]);
+                }
+            }
+
+            for (var o = 3; o < ROWS; o++) {
+                for (var p = 0; p < COLUMNS - 3; p++) {
+                    stein4.push(this.grid[o][p]);
+                }
+            }
+
+            for (var q = 0; q < stein1.length; q++) {
+                if (stein1[q].player === this.state
+                    && stein2[q].player === this.state
+                    && stein3[q].player === this.state
+                    && stein4[q].player === this.state) {
+                    stein1[q].htmlObject.className += ' wl';
+                    stein2[q].htmlObject.className += ' wl';
+                    stein3[q].htmlObject.className += ' wl';
+                    stein4[q].htmlObject.className += ' wl';
+                    return true;
+                }
+            }
+
             return false;
         }
 
