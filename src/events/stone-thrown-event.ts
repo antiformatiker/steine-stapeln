@@ -1,0 +1,4 @@
+export class StoneThrownEvent {
+  constructor() {
+  }
+}

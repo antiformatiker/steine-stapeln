@@ -1,0 +1,31 @@
+{
+  "name": "steine-stapeln",
+  "version": "2.0.0",
+  "description": "Ein Ableger des berühmten Spiels Vier-Gewinnt",
+  "main": "main.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antiformatiker/steine-stapeln.git"
+  },
+  "author": "antiformatiker",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/antiformatiker/steine-stapeln/issues"
+  },
+  "homepage": "https://github.com/antiformatiker/steine-stapeln#readme",
+  "devDependencies": {
+    "css-loader": "^0.28.7",
+    "html-webpack-plugin": "^2.30.1",
+    "node-sass": "^4.6.0",
+    "sass-loader": "^6.0.6",
+    "style-loader": "^0.19.0",
+    "ts-loader": "^3.1.1",
+    "tslint": "^5.8.0",
+    "typescript": "^2.6.1",
+    "webpack": "^3.8.1"
+  }
+}
