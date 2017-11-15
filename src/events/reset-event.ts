@@ -1,3 +1,1 @@
-export class ResetEvent {
-
-}
+export class ResetEvent { }

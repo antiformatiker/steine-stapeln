@@ -1,23 +1,29 @@
-import './messenger.scss';
+import './scss/messenger.scss';
 
 export class Messenger {
 
   private textarea: HTMLTextAreaElement;
 
+  /**
+   * @param {string} id
+   */
   constructor(private id: string) {
     this.init();
   }
 
+  /**
+   * @param {string} message
+   */
   public print(message: string): void {
     this.textarea.value += message + '\n';
     this.scrollToBottom();
   }
 
-  public reset() {
+  public reset(): void {
     this.textarea.value = '';
   }
 
-  private init() {
+  private init(): void {
     this.textarea = document.getElementById(this.id) as HTMLTextAreaElement;
     this.reset();
   }

@@ -1,4 +1,6 @@
+import { StoneThrownObservable } from './stone-thrown-observable';
+
 export class StoneThrownEvent {
-  constructor() {
+  constructor(source: StoneThrownObservable) {
   }
 }

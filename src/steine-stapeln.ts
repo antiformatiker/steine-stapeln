@@ -11,6 +11,10 @@ import { Messenger } from './messenger';
 
 export class SteineStapeln extends Game implements StoneThrownObserver {
 
+  /**
+   * @param {Board} board
+   * @param {Messenger} messenger
+   */
   constructor(private board: Board, private messenger: Messenger) {
     super();
     this.addGameStateChangeObserver(this.board);
@@ -25,10 +29,16 @@ export class SteineStapeln extends Game implements StoneThrownObserver {
     this.changeState();
   }
 
+  /**
+   * @param {StoneThrownEvent} event
+   */
   public onStoneThrown(event: StoneThrownEvent): void {
     this.changeState();
   }
 
+  /**
+   * @param {ResetEvent} event
+   */
   public onReset(event: ResetEvent): void {
     if (confirm('Sind Sie sich sicher?')) {
       this.initBoard();
@@ -41,27 +51,30 @@ export class SteineStapeln extends Game implements StoneThrownObserver {
   }
 
   private changeState(): void {
-    if (this.state === GameStateEnum.START) {
+    if (GameStateEnum.START === this.state) {
       this.state = GameStateEnum.PLAYER1;
       this.messenger.print('Spieler 1 ist nun an der Reihe');
     } else if (this.gameIsDone()) {
       this.finishGame();
-    } else if (this.state === GameStateEnum.PLAYER1) {
+    } else if (GameStateEnum.PLAYER1 === this.state) {
       this.state = GameStateEnum.PLAYER2;
       this.messenger.print('Spieler 2 ist nun an der Reihe!');
-    } else if (this.state === GameStateEnum.PLAYER2) {
+    } else if (GameStateEnum.PLAYER2 === this.state) {
       this.state = GameStateEnum.PLAYER1;
       this.messenger.print('Spieler 1 ist nun an der Reihe!');
     }
   }
 
+  /**
+   * @returns {boolean}
+   */
   private gameIsDone(): boolean {
     return this.board.checkGameIsDone();
   }
 
   private finishGame(): void {
     this.messenger.print('Herzlichen Glückwunsch! Das Spiel ist zuende');
-    const winner = (this.state === GameStateEnum.PLAYER1) ? '1' : '2';
+    const winner = (GameStateEnum.PLAYER1 === this.state) ? '1' : '2';
     this.messenger.print(`Spieler ${winner} hat gewonnen`);
     this.state = GameStateEnum.END;
   }

@@ -1,10 +1,17 @@
 # steine-stapeln
 Ein "Vier Gewinnt" Ableger
 
-## Kompilieren
+## Setup
 ```bash
-npm run build
+$ npm install
+$ npm run build
 ```
 
 ## Starten
 `dist/index.html` im Browser öffnen. Spielen.
+
+## TODO
+- ~~Rewrite in typescript~~
+- ~~Restart button~~
+- Player names
+- Scores

@@ -4,9 +4,10 @@ import { GameStateChangeObserver } from './events/game-state-change-observer';
 import { GameStateEnum } from './events/game-state.enum';
 import { ResetEvent } from './events/reset-event';
 import { ResetObserver } from './events/reset-observer';
-import { Startable } from './startable';
+import { Startable } from './interfaces/startable';
 
 export abstract class Game implements Startable, GameStateChangeObservable, ResetObserver {
+
   private _state: GameStateEnum;
   private gameStateChangeObservers: GameStateChangeObserver[];
 
@@ -25,12 +26,18 @@ export abstract class Game implements Startable, GameStateChangeObservable, Rese
 
   public abstract start(): void;
 
+  /**
+   * @param {GameStateChangeObserver} observer
+   */
   public addGameStateChangeObserver(observer: GameStateChangeObserver): void {
     if (observer) {
       this.gameStateChangeObservers.push(observer);
     }
   }
 
+  /**
+   * @param {GameStateChangeObserver} observer
+   */
   public removeGameStateChangeObserver(observer: GameStateChangeObserver): void {
     if (observer) {
       this.gameStateChangeObservers.forEach(
@@ -43,12 +50,18 @@ export abstract class Game implements Startable, GameStateChangeObservable, Rese
     }
   }
 
+  /**
+   * @param {GameStateChangeEvent} event
+   */
   public notifyGameStateChangeObservers(event: GameStateChangeEvent): void {
     this.gameStateChangeObservers.forEach((observer: GameStateChangeObserver) => {
       observer.onGameStateChanged(event);
     });
   }
 
+  /**
+   * @param {ResetEvent} event
+   */
   public onReset(event: ResetEvent): void {
     this.state = GameStateEnum.START;
     this.start();

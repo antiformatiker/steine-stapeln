@@ -1,28 +1,43 @@
-import './board.scss';
-import { Cell } from './cell';
-import { CLASS, DATA, ELEMENT } from './constants';
+import { CLASS } from './constants/class.constants';
+import { DATA } from './constants/data.constants';
+import { ELEMENT } from './constants/element.constants';
 import { GameStateChangeEvent } from './events/game-state-change-event';
 import { GameStateChangeObserver } from './events/game-state-change-observer';
 import { GameStateEnum } from './events/game-state.enum';
 import { StoneThrownEvent } from './events/stone-thrown-event';
 import { StoneThrownObservable } from './events/stone-thrown-observable';
 import { StoneThrownObserver } from './events/stone-thrown-observer';
+import { Cell } from './interfaces/cell';
+import './scss/board.scss';
 
+/**
+ * Blueprint for the game board. Fires an event which indicates that a stone is beeing thrown.
+ * Observes the state of the game.
+ */
 export class Board implements StoneThrownObservable, GameStateChangeObserver {
 
   private readonly rows: number = 8;
   private readonly columns: number = 8;
+
   private htmlElement: HTMLDivElement;
   private grid: Cell[][];
   private state: GameStateEnum;
   private stoneThrownObservers: StoneThrownObserver[];
 
+  /**
+   * Get the html element based on the given id and creates a new grid.
+   * @param {string} id the identifier for the html element
+   */
   constructor(private id: string) {
     this.stoneThrownObservers = [];
     this.htmlElement = document.getElementById(this.id) as HTMLDivElement;
     this.grid = new Array(this.rows);
   }
 
+  /**
+   * Initialize the board:
+   * Remove the content of the board and create new content.
+   */
   public init(): void {
     this.htmlElement.innerHTML = '';
     for (let i = 0; i < this.rows; i++) {
@@ -42,6 +57,10 @@ export class Board implements StoneThrownObservable, GameStateChangeObserver {
     }
   }
 
+  /**
+   * Checks if the game has been won.
+   * @returns {boolean}
+   */
   public checkGameIsDone(): boolean {
     return this.horizontalWin()
       || this.verticalWin()
@@ -49,16 +68,28 @@ export class Board implements StoneThrownObservable, GameStateChangeObserver {
       || this.diagonalUpWin();
   }
 
+  /**
+   * On GameStateChangeEvent has been fired.
+   * @param {GameStateChangeEvent} event
+   */
   public onGameStateChanged(event: GameStateChangeEvent): void {
     this.state = event.state;
   }
 
+  /**
+   * Adds a new StoneThrownObserver to the collection.
+   * @param {StoneThrownObserver} observer
+   */
   public addStoneThrownObserver(observer: StoneThrownObserver): void {
     if (observer) {
       this.stoneThrownObservers.push(observer);
     }
   }
 
+  /**
+   * Removes a StoneThrownObserver from the collection.
+   * @param {StoneThrownObserver} observer
+   */
   public removeStoneThrownObserver(observer: StoneThrownObserver): void {
     if (observer) {
       this.stoneThrownObservers.forEach(
@@ -71,10 +102,18 @@ export class Board implements StoneThrownObservable, GameStateChangeObserver {
     }
   }
 
+  /**
+   * Notifies all StoneThrownObserver that a StoneThrownEvent has been fired.
+   * @param {StoneThrownEvent} event
+   */
   public notifyStoneThrownObservers(event: StoneThrownEvent): void {
     this.stoneThrownObservers.forEach((observer: StoneThrownObserver) => observer.onStoneThrown(event));
   }
 
+  /**
+   * Creates a row in form of a div element.
+   * @returns {HTMLDivElement}
+   */
   private createRow(): HTMLDivElement {
     const row = document.createElement(ELEMENT.DIV) as HTMLDivElement;
     row.className = CLASS.ROW;
@@ -82,16 +121,24 @@ export class Board implements StoneThrownObservable, GameStateChangeObserver {
     return row;
   }
 
-  private createCell(rowIndex, columnIndex): HTMLDivElement {
+  /**
+   * Creates a cell in form of a div element.
+   * @param {number} rowIndex
+   * @param {number} columnIndex
+   * @returns {HTMLDivElement}
+   */
+  private createCell(rowIndex: number, columnIndex: number): HTMLDivElement {
     const cell = document.createElement(ELEMENT.DIV) as HTMLDivElement;
     cell.className = CLASS.CELL;
-    cell.setAttribute(DATA.ROW, rowIndex);
-    cell.setAttribute(DATA.COLUMN, columnIndex);
+    cell.setAttribute(DATA.ROW, rowIndex.toString());
+    cell.setAttribute(DATA.COLUMN, columnIndex.toString());
     cell.onclick = (event: MouseEvent) => {
       const div = event.target as HTMLDivElement;
-      if (this.state !== GameStateEnum.END) {
-        if (this.throwStone(div.getAttribute(DATA.ROW), div.getAttribute(DATA.COLUMN))) {
-          this.notifyStoneThrownObservers(new StoneThrownEvent());
+      if (GameStateEnum.END !== this.state) {
+        const row = div.getAttribute(DATA.ROW);
+        const column = div.getAttribute(DATA.COLUMN);
+        if (this.throwStone(row, column)) {
+          this.notifyStoneThrownObservers(new StoneThrownEvent(this));
         }
       }
     };
@@ -99,12 +146,22 @@ export class Board implements StoneThrownObservable, GameStateChangeObserver {
     return cell;
   }
 
-  private throwStone(row, column): boolean {
-    for (let k = this.grid[row].length - 1; k >= 0; k--) {
-      if (this.grid[k][column].player === 0) {
-        this.grid[k][column].player = (this.state === GameStateEnum.PLAYER1)
+  /**
+   * Throws a stone into the grid.
+   * @param {string|null} row
+   * @param {string|null} column
+   * @returns {boolean}
+   * @throws {Error}
+   */
+  private throwStone(row: string | null, column: string | null): boolean {
+    if (null === row || null === column) {
+      throw Error('Oops, i ... think i am null');
+    }
+    for (let k = this.grid[+row].length - 1; k >= 0; k--) {
+      if (0 === this.grid[k][+column].player) {
+        this.grid[k][+column].player = (GameStateEnum.PLAYER1 === this.state)
           ? GameStateEnum.PLAYER1 : GameStateEnum.PLAYER2;
-        this.grid[k][column].htmlObject.className += (this.state === GameStateEnum.PLAYER1)
+        this.grid[k][+column].htmlObject.className += (GameStateEnum.PLAYER1 === this.state)
           ? ` ${CLASS.PLAYER1}` : ` ${CLASS.PLAYER2}`;
 
         return true;
@@ -114,6 +171,9 @@ export class Board implements StoneThrownObservable, GameStateChangeObserver {
     return false;
   }
 
+  /**
+   * @returns {boolean}
+   */
   private horizontalWin(): boolean {
     const stein1: Cell[] = [];
     const stein2: Cell[] = [];
@@ -161,6 +221,9 @@ export class Board implements StoneThrownObservable, GameStateChangeObserver {
     return false;
   }
 
+  /**
+   * @returns {boolean}
+   */
   private verticalWin(): boolean {
     const stein1: Cell[] = [];
     const stein2: Cell[] = [];
@@ -208,6 +271,9 @@ export class Board implements StoneThrownObservable, GameStateChangeObserver {
     return false;
   }
 
+  /**
+   * @returns {boolean}
+   */
   private diagonalDownWin(): boolean {
     const stein1: Cell[] = [];
     const stein2: Cell[] = [];
@@ -255,6 +321,9 @@ export class Board implements StoneThrownObservable, GameStateChangeObserver {
     return false;
   }
 
+  /**
+   * @returns {boolean}
+   */
   private diagonalUpWin(): boolean {
     const stein1: Cell[] = [];
     const stein2: Cell[] = [];
